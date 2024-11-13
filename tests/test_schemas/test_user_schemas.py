@@ -2,7 +2,7 @@ from builtins import str
 import pytest
 from pydantic import ValidationError
 from datetime import datetime
-from app.schemas.user_schemas import UserBase, UserCreate, UserUpdate, UserResponse, UserListResponse, LoginRequest
+from app.schemas.user_schemas import UserBase, UserCreate, UserUpdate, UserResponse, UserListResponse, LoginRequest, validate_password_complexity
 
 # Tests for UserBase
 def test_user_base_valid(user_base_data):
@@ -67,3 +67,27 @@ def test_user_base_invalid_email(user_base_data_invalid):
 
     assert "value is not a valid email address" in str(exc_info.value)
     assert "john.doe.example.com" in str(exc_info.value)
+
+# Parametrized tests for password validation
+@pytest.mark.parametrize("password, expected", [
+    # Valid passwords
+    ("Secure*1234", True),
+    ("Strong#Pass1", True),
+    ("Val1d!Pa55w0rd", True),
+
+    # Invalid passwords
+    ("short1!", False),  # Too short
+    ("NoDigitsHere!", False),  # No digits
+    ("nouppercase1!", False),  # No uppercase letters
+    ("NOLOWERCASE1!", False),  # No lowercase letters
+    ("1234567890", False),  # Only numbers
+    ("abcdefg!", False),  # No uppercase, short length
+    ("ABCDEFGH1!", False),  # No lowercase
+    ("P@ssword", False),  # Too short and lacks digits
+])
+def test_validate_password_complexity(password, expected):
+    if expected:
+        assert validate_password_complexity(password) == password
+    else:
+        with pytest.raises(ValueError):
+            validate_password_complexity(password)
