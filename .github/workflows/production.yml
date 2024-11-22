@@ -11,6 +11,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      smtp_username: ${{ secrets.smtp_username }}
+      smtp_password: ${{ secrets.smtp_password }}
     strategy:
       matrix:
         python-version: [3.10.12] # Define Python versions here

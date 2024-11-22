@@ -34,9 +34,6 @@ services:
     build: .
     volumes:
       - ./:/myapp/
-    environment:
-      - smtp_username=${"smtp_username"}
-      - smtp_password=${"smtp_username"}
     depends_on:
       postgres:
         condition: service_healthy
