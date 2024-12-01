@@ -61,6 +61,8 @@ class UserService:
             new_user = User(**validated_data)
             new_user.verification_token = generate_verification_token()
             new_nickname = generate_nickname()
+            user_count = await cls.count(session)
+            new_user.role = UserRole.ADMIN if user_count == 0 else UserRole.ANONYMOUS
             while await cls.get_by_nickname(session, new_nickname):
                 new_nickname = generate_nickname()
             new_user.nickname = new_nickname
@@ -164,7 +166,8 @@ class UserService:
         if user and user.verification_token == token:
             user.email_verified = True
             user.verification_token = None  # Clear the token once used
-            user.role = UserRole.AUTHENTICATED
+            if user.role == UserRole.ANONYMOUS:
+                user.role = UserRole.AUTHENTICATED
             session.add(user)
             await session.commit()
             return True
